@@ -1,0 +1,9 @@
+# aceitar somente script python 
+!*.pyc
+!*.txt
+
+#Nao aceitar arquivos de imagem e html
+*.jpg
+*.png
+*.html
+*.csv
