@@ -92,7 +92,7 @@ def gerar_html_template(data_exibicao, dia_numero, itens_cronograma):
     cronograma_html = ""
     for item in itens_cronograma:
         hora = datetime.strptime(item['Hora'], '%H:%M:%S').strftime('%H:%M')
-        nome = item['Nome']
+        nome = item['Nome'].title()  # Aplica title case (primeira letra maiúscula)
         titulo = item['Título do trabalho'].title()  # Aplica title case (primeira letra maiúscula)
         banca = formatar_banca(
             item['Orientador'],
