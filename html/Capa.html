@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capa Flyer Jornada TCC</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #0000FF; /* Azul FASI vibrante */
+            --dark-blue: #000099;
+            --text-dark: #222;
+            --bg-color: #f4f7fa;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #222;
+            min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        /* Container do Flyer (Proporção Instagram Portrait 4:5) */
+        .flyer {
+            width: 1080px;
+            height: 1350px;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        /* Background Tech Sutil (Igual ao anterior) */
+        .flyer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 0, 255, 0.03) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 0, 255, 0.03) 0%, transparent 20%);
+            background-size: 100% 100%;
+            z-index: 0;
+        }
+
+        /* Elementos Gráficos Decorativos (Igual ao anterior) */
+        .circle-decor {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        .c1 { width: 400px; height: 400px; background: rgba(0,0,255,0.04); top: -150px; right: -100px; }
+        .c2 { width: 250px; height: 250px; border: 30px solid rgba(0,0,255,0.03); bottom: 100px; left: -80px; }
+
+        /* Cabeçalho (Igual ao anterior) */
+        header {
+            padding: 60px 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2;
+            flex-shrink: 0; /* Garante que o header não encolha */
+        }
+
+        .logo-placeholder {
+            height: 100px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo-placeholder img {
+            max-height: 100%;
+            max-width: 250px;
+            object-fit: contain;
+        }
+
+        /* Área Central de Mensagem */
+        .central-content {
+            flex: 1; /* Ocupa todo o espaço vertical disponível */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 60px;
+            z-index: 2;
+        }
+
+        /* Título Principal da Capa */
+        h1.cover-title {
+            font-weight: 900;
+            font-size: 80px;
+            line-height: 1.1;
+            color: var(--primary-blue);
+            text-transform: uppercase;
+            margin-bottom: 60px;
+            max-width: 900px;
+            letter-spacing: -2px;
+            text-shadow: 2px 2px 0px rgba(0,0,255,0.1);
+        }
+
+        /* Instrução de Arrastar */
+        .swipe-cta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 255, 0.05);
+            padding: 20px 40px;
+            border-radius: 60px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .swipe-text {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Ícone de Seta com Animação */
+        .swipe-arrow {
+            font-size: 48px;
+            color: var(--primary-blue);
+            animation: bounceRight 1.5s infinite ease-in-out;
+        }
+
+        @keyframes bounceRight {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(15px); }
+        }
+
+        /* Rodapé decorativo (Igual ao anterior) */
+        footer {
+            height: 20px;
+            background: var(--primary-blue);
+            margin-top: auto;
+            flex-shrink: 0;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="flyer">
+        <div class="circle-decor c1"></div>
+        <div class="circle-decor c2"></div>
+
+        <header>
+            <div class="logo-placeholder">
+                <h3 style="color: #333; font-family: 'Montserrat'; font-weight: 800; font-size: 30px; opacity: 0.7;"><img width="120px"src="ufpa.png" alt="Logo UFPA"></h3>
+            </div>
+            <div class="logo-placeholder">
+                 <img src="fasiOficial.png" alt="Logo FASI">
+            </div>
+        </header>
+
+        <main class="central-content">
+            <h1 class="cover-title">CRONOGRAMA DA<br>JORNADA DO TCC</h1>
+            
+            <div class="swipe-cta">
+                <span class="swipe-text">ARRASTE PARA O LADO</span>
+                <span class="swipe-arrow">→</span>
+            </div>
+        </main>
+
+        <footer></footer>
+    </div>
+
+</body>
+</html>
