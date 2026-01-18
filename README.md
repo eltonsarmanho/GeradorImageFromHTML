@@ -1,14 +1,23 @@
 # Gerador de Imagens para Instagram - Jornada TCC
 
-Este script automatiza a criação de imagens para Instagram a partir de arquivos HTML, convertendo layouts web em imagens PNG otimizadas para redes sociais.
+Este projeto automatiza a criação de imagens para Instagram a partir de dados CSV, convertendo informações de apresentações em layouts web e depois em imagens PNG otimizadas para redes sociais.
 
-## 📋 O que o script faz
+## 📋 O que os scripts fazem
 
-O script `gerar_posts.py` utiliza o Playwright para:
-- Ler arquivos HTML da pasta `html/`
-- Renderizar cada arquivo em um navegador headless
-- Capturar screenshots em alta qualidade
-- Salvar as imagens no formato adequado para Instagram (1080x1350px)
+### 1. `gerar_html.py` - Gerador de HTMLs
+- Lê dados do arquivo CSV
+- Agrupa apresentações por data
+- Organiza cronologicamente
+- Padroniza nomes dos alunos (primeira letra de cada palavra em maiúscula)
+- Padroniza títulos dos trabalhos (primeira letra de cada palavra em maiúscula)
+- Gera um arquivo HTML para cada data diferente
+
+### 2. `gerar_posts.py` - Gerador de Imagens
+- Lê arquivos HTML da pasta `html/`
+- Renderiza cada arquivo em um navegador headless (Playwright)
+- Carrega recursos locais (logo, imagens)
+- Captura screenshots em alta qualidade
+- Salva as imagens no formato adequado para Instagram (1080x1350px)
 
 ## 🔧 Pré-requisitos
 
@@ -27,21 +36,30 @@ O script `gerar_posts.py` utiliza o Playwright para:
    python -m playwright install chromium
    ```
 
+3. **Instale outras dependências (se necessário):**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
 ## 📁 Estrutura de Arquivos
 
 Organize seu projeto da seguinte forma:
 
 ```
-GeradorImagemJornadaTCC/
-├── gerar_posts.py          # Script principal
+GeradorImageFromHTML/
+├── gerar_html.py           # Script para gerar HTMLs a partir do CSV
+├── gerar_posts.py          # Script para gerar imagens a partir dos HTMLs
 ├── requirements.txt        # Dependências do projeto
 ├── README.md              # Este arquivo
-├── html/                  # Pasta com arquivos HTML
+├── CSV/                   # Pasta com dados de entrada
+│   └── Requisição de Defesa TCC (respostas).csv
+├── html/                  # Pasta com arquivos HTML gerados
 │   ├── Dia1.html
 │   ├── Dia2.html
 │   ├── Dia3.html
 │   ├── Dia4.html
-│   └── Dia5.html
+│   ├── Dia5.html
+│   └── fasiOficial.png    # Logo (referenciada nos HTMLs)
 └── instagram_posts/       # Pasta criada automaticamente
     ├── Dia1.png          # Imagens geradas
     ├── Dia2.png
@@ -52,18 +70,76 @@ GeradorImagemJornadaTCC/
 
 ## 🚀 Como Usar
 
-1. **Coloque seus arquivos HTML na pasta `html/`**
-   - Os arquivos devem ter a extensão `.html`
-   - Podem ter qualquer nome (ex: Dia1.html, evento.html, etc.)
+### Passo 1: Preparar o arquivo CSV
 
-2. **Execute o script:**
-   ```bash
-   python gerar_posts.py
-   ```
+Coloque um arquivo CSV na pasta `CSV/` com as seguintes colunas:
 
-3. **Verifique o resultado:**
-   - As imagens serão salvas na pasta `instagram_posts/`
-   - Cada arquivo HTML gerará uma imagem PNG correspondente
+```
+Nome, Matrícula, Email, Título do trabalho, Modalidade do Trabalho, 
+Orientador, Membro 1 da Banca, Membro 2 da Banca, Membro 3 da Banca (Opcional), 
+Data, Hora
+```
+
+**Exemplo de dados:**
+```
+Fernando Caldas Costa,201916040011,fernando@email.com,Projeto e Implementação de um Sistema...,Monografia,Fabricio de Souza Farias,Carlos dos Santos Portela,Leonardo Nunes Gonçalves,Keventon Rian Gimarães Gonçalves,09/02/26,09:00:00
+```
+
+### Passo 2: Gerar os arquivos HTML
+
+Execute o script `gerar_html.py`:
+
+```bash
+python gerar_html.py
+```
+
+O script irá:
+- Ler os dados do CSV
+- Agrupar por data
+- Criar um arquivo HTML para cada data
+- Padronizar nomes e títulos
+
+**Saída esperada:**
+```
+Encontradas 5 datas diferentes:
+  - Dia 1: 09/02/26 (4 apresentações)
+  - Dia 2: 10/02/26 (3 apresentações)
+  ...
+✅ Gerado: Dia1.html (4 apresentações)
+✅ Gerado: Dia2.html (3 apresentações)
+```
+
+### Passo 3: Gerar as imagens PNG
+
+Execute o script `gerar_posts.py`:
+
+```bash
+python gerar_posts.py
+```
+
+O script irá:
+- Ler todos os arquivos HTML gerados
+- Renderizar cada um como imagem
+- Salvar as imagens na pasta `instagram_posts/`
+
+**Saída esperada:**
+```
+Encontrados 5 arquivos HTML:
+Processando: html/Dia1.html
+Imagem gerada com sucesso: instagram_posts/Dia1.png
+Processando: html/Dia2.html
+Imagem gerada com sucesso: instagram_posts/Dia2.png
+...
+--- Processo Concluído! Verifique a pasta 'instagram_posts' ---
+```
+
+### Passo 4 (Opcional): Executar ambos os scripts
+
+Para automatizar todo o processo:
+
+```bash
+python gerar_html.py && python gerar_posts.py
+```
 
 ## ⚙️ Configurações
 
