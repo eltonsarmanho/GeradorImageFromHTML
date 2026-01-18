@@ -8,4 +8,6 @@
 *.csv
 *.env
 # Arquivo Capa.html deve ser aceito
-!Capa.html
+!Capa.
+!fasiOficial.png
+!ufpa.png
