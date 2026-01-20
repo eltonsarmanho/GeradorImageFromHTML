@@ -22,6 +22,16 @@ def ler_csv(arquivo_csv):
     
     return dados
 
+def parsear_data_flexivel(data_str):
+    """Parse flexível de data que aceita DD/MM/YY ou DD/MM/YYYY."""
+    formatos = ['%d/%m/%y', '%d/%m/%Y']
+    for formato in formatos:
+        try:
+            return datetime.strptime(data_str, formato)
+        except ValueError:
+            continue
+    return None
+
 def agrupar_por_data(dados):
     """Agrupa os dados por data e organiza cronologicamente."""
     dados_agrupados = defaultdict(list)
@@ -37,24 +47,32 @@ def agrupar_por_data(dados):
     return dict(dados_agrupados)
 
 def formatar_data_exibicao(data_str):
-    """Converte data de DD/MM/AA para formato de exibição."""
-    try:
-        # Parse da data no formato DD/MM/AA
-        data_obj = datetime.strptime(data_str, '%d/%m/%y')
-        # Mapear dias da semana
-        dias_semana = {
-            0: 'Segunda-feira',
-            1: 'Terça-feira', 
-            2: 'Quarta-feira',
-            3: 'Quinta-feira',
-            4: 'Sexta-feira',
-            5: 'Sábado',
-            6: 'Domingo'
-        }
-        dia_semana = dias_semana[data_obj.weekday()]
-        return f"{data_obj.strftime('%d de %B')} ({dia_semana})", data_obj
-    except ValueError:
+    """Converte data de DD/MM/AA ou DD/MM/YYYY para formato de exibição."""
+    formatos = ['%d/%m/%y', '%d/%m/%Y']  # Tenta primeiro 2 dígitos, depois 4
+    data_obj = None
+    
+    for formato in formatos:
+        try:
+            data_obj = datetime.strptime(data_str, formato)
+            break
+        except ValueError:
+            continue
+    
+    if data_obj is None:
         return data_str, None
+    
+    # Mapear dias da semana
+    dias_semana = {
+        0: 'Segunda-feira',
+        1: 'Terça-feira', 
+        2: 'Quarta-feira',
+        3: 'Quinta-feira',
+        4: 'Sexta-feira',
+        5: 'Sábado',
+        6: 'Domingo'
+    }
+    dia_semana = dias_semana[data_obj.weekday()]
+    return f"{data_obj.strftime('%d de %B')} ({dia_semana})", data_obj
 
 def formatar_banca(orientador, membro1, membro2, membro3=""):
     """Formata a string da banca examinadora."""
@@ -362,7 +380,7 @@ def gerar_html_template(data_exibicao, dia_numero, itens_cronograma):
 
 def main():
     """Função principal que coordena a geração dos HTMLs."""
-    arquivo_csv = 'CSV/Requisição de Defesa TCC (respostas).csv'
+    arquivo_csv = 'CSV/data.csv'
     pasta_html = 'html'
     
     # Cria a pasta html se não existir
@@ -377,7 +395,7 @@ def main():
     
     # Ordena as datas cronologicamente
     datas_ordenadas = sorted(dados_por_data.keys(), 
-                           key=lambda x: datetime.strptime(x, '%d/%m/%y'))
+                           key=lambda x: parsear_data_flexivel(x))
     
     print(f"Encontradas {len(datas_ordenadas)} datas diferentes:")
     for i, data in enumerate(datas_ordenadas, 1):
