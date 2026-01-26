@@ -16,6 +16,8 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
+from PIL import Image
+
 
 @dataclass(frozen=True)
 class BrandColors:
@@ -139,7 +141,7 @@ def gerar_grade_treinos() -> dict:
 
 
 def gerar_html(colors: BrandColors) -> str:
-		logo_rel = "../Logo.JPG"  # arquivo está em ScriptCalendarioRAJJ/
+		logo_rel = "../Logo_transparente.png"  # arquivo está em ScriptCalendarioRAJJ/
 
 		relogio_html = gerar_svg_relogio_segmentado(colors)
 		grade = gerar_grade_treinos()
@@ -518,10 +520,68 @@ def gerar_html(colors: BrandColors) -> str:
 """
 
 
+def gerar_logo_transparente(base_dir: Path) -> None:
+		"""Gera uma logo PNG com transparência removendo o branco do fundo.
+
+		Estratégia:
+		- Considera como fundo os pixels "quase brancos".
+		- Remove apenas o fundo conectado às bordas (flood fill), preservando brancos internos.
+		"""
+
+		src = base_dir / "Logo.JPG"
+		dst = base_dir / "Logo_transparente.png"
+
+		if not src.exists():
+			return
+
+		if dst.exists() and dst.stat().st_mtime >= src.stat().st_mtime:
+			return
+
+		img = Image.open(src).convert("RGB")
+		w, h = img.size
+		px = img.load()
+
+		# Define fundo como "quase branco" (ajuste fino para JPG com compressão)
+		def is_bg(x: int, y: int) -> bool:
+			r, g, b = px[x, y]
+			return r >= 245 and g >= 245 and b >= 245
+
+		visited = [[False] * w for _ in range(h)]
+		stack = [(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)]
+
+		# Flood fill no fundo conectado às bordas
+		while stack:
+			x, y = stack.pop()
+			if x < 0 or y < 0 or x >= w or y >= h:
+				continue
+			if visited[y][x]:
+				continue
+			if not is_bg(x, y):
+				continue
+			visited[y][x] = True
+			stack.append((x + 1, y))
+			stack.append((x - 1, y))
+			stack.append((x, y + 1))
+			stack.append((x, y - 1))
+
+		rgba = img.convert("RGBA")
+		out_px = rgba.load()
+		for y in range(h):
+			row = visited[y]
+			for x in range(w):
+				if row[x]:
+					r, g, b, _a = out_px[x, y]
+					out_px[x, y] = (r, g, b, 0)
+
+		rgba.save(dst)
+
+
 def main() -> None:
 		base_dir = Path(__file__).resolve().parent
 		out_dir = base_dir / "html"
 		out_dir.mkdir(parents=True, exist_ok=True)
+
+		gerar_logo_transparente(base_dir)
 
 		colors = obter_cores_marca()
 		html = gerar_html(colors)
