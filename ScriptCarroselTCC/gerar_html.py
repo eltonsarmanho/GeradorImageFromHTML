@@ -9,11 +9,16 @@ import os
 from datetime import datetime
 from collections import defaultdict
 
+# Número máximo de apresentações que cabem em um único flyer (1080x1350) sem
+# cortar conteúdo. Se um dia tiver mais itens que isso, o cronograma é
+# dividido em várias páginas (Dia1_parte1.html, Dia1_parte2.html, ...).
+MAX_ITENS_POR_PAGINA = 4
+
 def ler_csv(arquivo_csv):
     """Lê o arquivo CSV e retorna uma lista de dicionários com os dados."""
     dados = []
     
-    with open(arquivo_csv, 'r', encoding='utf-8') as file:
+    with open(arquivo_csv, 'r', encoding='utf-8-sig') as file:
         reader = csv.DictReader(file)
         for row in reader:
             # Limpa espaços extras dos valores
@@ -23,8 +28,8 @@ def ler_csv(arquivo_csv):
     return dados
 
 def parsear_data_flexivel(data_str):
-    """Parse flexível de data que aceita DD/MM/YY ou DD/MM/YYYY."""
-    formatos = ['%d/%m/%y', '%d/%m/%Y']
+    """Parse flexível de data que aceita YYYY-MM-DD, DD/MM/YY ou DD/MM/YYYY."""
+    formatos = ['%Y-%m-%d', '%d/%m/%y', '%d/%m/%Y']
     for formato in formatos:
         try:
             return datetime.strptime(data_str, formato)
@@ -32,23 +37,55 @@ def parsear_data_flexivel(data_str):
             continue
     return None
 
+def parsear_hora_flexivel(hora_str):
+    """Parse flexível de hora que aceita H:MM, HH:MM ou HH:MM:SS."""
+    formatos = ['%H:%M:%S', '%H:%M']
+    for formato in formatos:
+        try:
+            return datetime.strptime(hora_str, formato)
+        except ValueError:
+            continue
+    return None
+
+def mesclar_duplas(itens):
+    """Mescla apresentações com o mesmo título (dupla) em um único item,
+    combinando os nomes dos alunos como 'Nome 1 e Nome 2'. Os demais dados
+    originais (orientador, banca, horário, etc.) do primeiro aluno são mantidos."""
+    mesclados = {}
+    ordem = []
+
+    for item in itens:
+        chave = item['Título do Trabalho']
+        if chave not in mesclados:
+            mesclados[chave] = dict(item)
+            ordem.append(chave)
+        else:
+            existente = mesclados[chave]
+            nomes = existente['Aluno'].split(' e ')
+            if item['Aluno'] not in nomes:
+                nomes.append(item['Aluno'])
+                existente['Aluno'] = ' e '.join(nomes)
+
+    return [mesclados[chave] for chave in ordem]
+
 def agrupar_por_data(dados):
     """Agrupa os dados por data e organiza cronologicamente."""
     dados_agrupados = defaultdict(list)
-    
+
     for item in dados:
-        data = item['Data']
+        data = item['Data de Defesa']
         dados_agrupados[data].append(item)
-    
-    # Ordena cada grupo por horário
+
+    # Ordena cada grupo por horário e mescla duplas com o mesmo título
     for data in dados_agrupados:
-        dados_agrupados[data].sort(key=lambda x: datetime.strptime(x['Hora'], '%H:%M:%S').time())
-    
+        dados_agrupados[data].sort(key=lambda x: parsear_hora_flexivel(x['Horário']).time())
+        dados_agrupados[data] = mesclar_duplas(dados_agrupados[data])
+
     return dict(dados_agrupados)
 
 def formatar_data_exibicao(data_str):
-    """Converte data de DD/MM/AA ou DD/MM/YYYY para formato de exibição."""
-    formatos = ['%d/%m/%y', '%d/%m/%Y']  # Tenta primeiro 2 dígitos, depois 4
+    """Converte data de YYYY-MM-DD, DD/MM/AA ou DD/MM/YYYY para formato de exibição."""
+    formatos = ['%Y-%m-%d', '%d/%m/%y', '%d/%m/%Y']
     data_obj = None
     
     for formato in formatos:
@@ -92,7 +129,7 @@ def formatar_banca(orientador, membro1, membro2, membro3=""):
     
     return ", ".join(membros_limpos)
 
-def gerar_html_template(data_exibicao, dia_numero, itens_cronograma):
+def gerar_html_template(data_exibicao, dia_numero, itens_cronograma, parte_atual=1, total_partes=1):
     """Gera o template HTML com os dados fornecidos."""
     
     # Mapear meses para português
@@ -109,14 +146,14 @@ def gerar_html_template(data_exibicao, dia_numero, itens_cronograma):
     # Gerar itens do cronograma
     cronograma_html = ""
     for item in itens_cronograma:
-        hora = datetime.strptime(item['Hora'], '%H:%M:%S').strftime('%H:%M')
-        nome = item['Nome'].title()  # Aplica title case (primeira letra maiúscula)
-        titulo = item['Título do trabalho'].title()  # Aplica title case (primeira letra maiúscula)
+        hora = parsear_hora_flexivel(item['Horário']).strftime('%H:%M')
+        nome = ' e '.join(parte.title() for parte in item['Aluno'].split(' e '))  # Aplica title case por nome, mantendo o "e" de ligação em minúsculo
+        titulo = item['Título do Trabalho'].title()  # Aplica title case (primeira letra maiúscula)
         banca = formatar_banca(
             item['Orientador'],
-            item['Membro 1 da Banca'],
-            item['Membro 2 da Banca'],
-            item['Membro 3 da Banca (Opcional)']
+            item['Membro Banca 1'],
+            item['Membro Banca 2'],
+            item['Membro Banca 3']
         )
         
         cronograma_html += f"""            <div class="schedule-item">
@@ -364,7 +401,7 @@ def gerar_html_template(data_exibicao, dia_numero, itens_cronograma):
         </div>
 
         <div class="date-banner">
-            📅 DIA {dia_numero}: {data_exibicao}
+            📅 DIA {dia_numero}: {data_exibicao}{f' (Parte {parte_atual}/{total_partes})' if total_partes > 1 else ''}
         </div>
 
         <div class="schedule">
@@ -380,8 +417,9 @@ def gerar_html_template(data_exibicao, dia_numero, itens_cronograma):
 
 def main():
     """Função principal que coordena a geração dos HTMLs."""
-    arquivo_csv = 'CSV/data.csv'
-    pasta_html = 'html'
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    arquivo_csv = os.path.join(base_dir, '..', 'CSV', 'data.csv')
+    pasta_html = os.path.join(base_dir, 'html')
     
     # Cria a pasta html se não existir
     if not os.path.exists(pasta_html):
@@ -403,21 +441,33 @@ def main():
     
     print("\nGerando arquivos HTML...")
     
+    total_arquivos = 0
+
     for i, data in enumerate(datas_ordenadas, 1):
         data_exibicao, _ = formatar_data_exibicao(data)
         itens = dados_por_data[data]
-        
-        html_content = gerar_html_template(data_exibicao, i, itens)
-        
-        nome_arquivo = f"Dia{i}.html"
-        caminho_arquivo = os.path.join(pasta_html, nome_arquivo)
-        
-        with open(caminho_arquivo, 'w', encoding='utf-8') as file:
-            file.write(html_content)
-        
-        print(f"✅ Gerado: {nome_arquivo} ({len(itens)} apresentações)")
-    
-    print(f"\n✨ Processo concluído! {len(datas_ordenadas)} arquivos HTML foram gerados na pasta '{pasta_html}'.")
+
+        # Divide os itens do dia em páginas de no máximo MAX_ITENS_POR_PAGINA
+        paginas = [itens[p:p + MAX_ITENS_POR_PAGINA] for p in range(0, len(itens), MAX_ITENS_POR_PAGINA)] or [[]]
+        total_partes = len(paginas)
+
+        for parte_atual, itens_pagina in enumerate(paginas, 1):
+            html_content = gerar_html_template(data_exibicao, i, itens_pagina, parte_atual, total_partes)
+
+            if total_partes > 1:
+                nome_arquivo = f"Dia{i}_parte{parte_atual}.html"
+            else:
+                nome_arquivo = f"Dia{i}.html"
+
+            caminho_arquivo = os.path.join(pasta_html, nome_arquivo)
+
+            with open(caminho_arquivo, 'w', encoding='utf-8') as file:
+                file.write(html_content)
+
+            print(f"✅ Gerado: {nome_arquivo} ({len(itens_pagina)} apresentações)")
+            total_arquivos += 1
+
+    print(f"\n✨ Processo concluído! {total_arquivos} arquivos HTML foram gerados na pasta '{pasta_html}'.")
 
 if __name__ == "__main__":
     main()

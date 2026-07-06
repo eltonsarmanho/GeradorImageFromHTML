@@ -1,23 +1,21 @@
-# Gerador de Imagens para Instagram - Jornada TCC
+# Gerador de Imagens para Redes Sociais
 
-Este projeto automatiza a criação de imagens para Instagram a partir de dados CSV, convertendo informações de apresentações em layouts web e depois em imagens PNG otimizadas para redes sociais.
+Este projeto automatiza a criação de imagens para Instagram/WhatsApp a partir de dados (CSV ou conteúdo fixo), convertendo informações em layouts web (HTML) e depois em imagens PNG otimizadas para redes sociais.
 
-## 📋 O que os scripts fazem
+O repositório contém **vários geradores de HTML independentes** (um por campanha/projeto) e **um único gerador de posts genérico** (`gerar_posts.py`) que renderiza qualquer HTML em PNG.
 
-### 1. `gerar_html.py` - Gerador de HTMLs
-- Lê dados do arquivo CSV
-- Agrupa apresentações por data
-- Organiza cronologicamente
-- Padroniza nomes dos alunos (primeira letra de cada palavra em maiúscula)
-- Padroniza títulos dos trabalhos (primeira letra de cada palavra em maiúscula)
-- Gera um arquivo HTML para cada data diferente
+## 📋 Scripts disponíveis
 
-### 2. `gerar_posts.py` - Gerador de Imagens
-- Lê arquivos HTML da pasta `html/`
-- Renderiza cada arquivo em um navegador headless (Playwright)
-- Carrega recursos locais (logo, imagens)
-- Captura screenshots em alta qualidade
-- Salva as imagens no formato adequado para Instagram (1080x1350px)
+| Pasta | Script | Gera | Saída (HTML) |
+|---|---|---|---|
+| `ScriptCarroselTCC/` | `gerar_html.py` | Carrossel da Jornada do TCC a partir de `CSV/data.csv` (agrupado por data, mescla duplas) | `ScriptCarroselTCC/html/DiaN.html` |
+| `ScriptCalendarioRAJJ/` | `gerar_html_rajj.py` | Calendário semanal de treinos (grade) | `ScriptCalendarioRAJJ/html/calendario_treinos_rajj.html` |
+| `ScriptMapaDisciplinasFlexibilizadas/` | `gerar_html_mapa.py` | Mapa de disciplinas flexibilizadas por curso | `ScriptMapaDisciplinasFlexibilizadas/html/mapa_disciplinas_flexibilizadas.html` |
+| `ScriptProjetoManual/` | `gerar_htmls.py` | Slides de carrossel a partir de `Img/Texto.md` + imagens | `ScriptProjetoManual/html/slide_0N.html` |
+| `ScriptSebrae/` | `gerar_html_premiacao_sebrae_2026.py` | Carrossel do Prêmio Educador Transformador (Sebrae) 2026 | `ScriptSebrae/html/*.html` |
+| raiz `/` | `gerar_posts.py` | Renderiza qualquer HTML em PNG (Playwright), com variações por plataforma | `instagram_posts/`, `whatsapp_posts/`, `original_posts/` |
+
+Cada gerador de HTML é independente e cria sua própria pasta `html/` **dentro da sua própria pasta**. O `gerar_posts.py` procura arquivos na pasta `html/` **relativa ao diretório onde é executado**, então rode-o de dentro da pasta do script desejado (veja exemplos abaixo).
 
 ## 🔧 Pré-requisitos
 
@@ -41,156 +39,163 @@ Este projeto automatiza a criação de imagens para Instagram a partir de dados 
    pip install -r requirements.txt
    ```
 
-## 📁 Estrutura de Arquivos
+## 🚀 Como gerar os HTMLs (por script)
 
-Organize seu projeto da seguinte forma:
+### 1. Carrossel Jornada do TCC (`ScriptCarroselTCC`)
 
-```
-GeradorImageFromHTML/
-├── gerar_html.py           # Script para gerar HTMLs a partir do CSV
-├── gerar_posts.py          # Script para gerar imagens a partir dos HTMLs
-├── requirements.txt        # Dependências do projeto
-├── README.md              # Este arquivo
-├── CSV/                   # Pasta com dados de entrada
-│   └── Requisição de Defesa TCC (respostas).csv
-├── html/                  # Pasta com arquivos HTML gerados
-│   ├── Dia1.html
-│   ├── Dia2.html
-│   ├── Dia3.html
-│   ├── Dia4.html
-│   ├── Dia5.html
-│   └── fasiOficial.png    # Logo (referenciada nos HTMLs)
-└── instagram_posts/       # Pasta criada automaticamente
-    ├── Dia1.png          # Imagens geradas
-    ├── Dia2.png
-    ├── Dia3.png
-    ├── Dia4.png
-    └── Dia5.png
-```
-
-## 🚀 Como Usar
-
-### Passo 1: Preparar o arquivo CSV
-
-Coloque um arquivo CSV na pasta `CSV/` com as seguintes colunas:
-
-```
-Nome, Matrícula, Email, Título do trabalho, Modalidade do Trabalho, 
-Orientador, Membro 1 da Banca, Membro 2 da Banca, Membro 3 da Banca (Opcional), 
-Data, Hora
-```
-
-### Passo 2: Gerar os arquivos HTML
-
-Execute o script `gerar_html.py`:
+Requer o arquivo `CSV/data.csv` na raiz do projeto, com colunas como `Aluno`, `Título do Trabalho`, `Orientador`, `Membro Banca 1/2/3`, `Data de Defesa`, `Horário` (ver [Colunas esperadas do CSV](#-colunas-esperadas-do-csv-carrossel-tcc)).
 
 ```bash
+cd ScriptCarroselTCC
 python gerar_html.py
 ```
 
-O script irá:
-- Ler os dados do CSV
-- Agrupar por data
-- Criar um arquivo HTML para cada data
-- Padronizar nomes e títulos
+- Agrupa apresentações por `Data de Defesa` e ordena por `Horário`.
+- Mescla automaticamente em uma dupla ("Nome 1 e Nome 2") quando dois registros têm o mesmo `Título do Trabalho`.
+- Gera um arquivo `Dia1.html`, `Dia2.html`, ... (um por data).
 
-**Saída esperada:**
-```
-Encontradas 5 datas diferentes:
-  - Dia 1: 09/02/26 (4 apresentações)
-  - Dia 2: 10/02/26 (3 apresentações)
-  ...
-✅ Gerado: Dia1.html (4 apresentações)
-✅ Gerado: Dia2.html (3 apresentações)
-```
-
-### Passo 3: Gerar as imagens PNG
-
-Execute o script `gerar_posts.py`:
+### 2. Calendário de Treinos RAJJ (`ScriptCalendarioRAJJ`)
 
 ```bash
-python gerar_posts.py
+cd ScriptCalendarioRAJJ
+python gerar_html_rajj.py
 ```
 
-O script irá:
-- Ler todos os arquivos HTML gerados
-- Renderizar cada um como imagem
-- Salvar as imagens na pasta `instagram_posts/`
+- Usa a `Logo.JPG`/`Logo_transparente.png` da própria pasta para extrair as cores da marca.
+- Gera `calendario_treinos_rajj.html` com a grade semanal de treinos.
 
-**Saída esperada:**
-```
-Encontrados 5 arquivos HTML:
-Processando: html/Dia1.html
-Imagem gerada com sucesso: instagram_posts/Dia1.png
-Processando: html/Dia2.html
-Imagem gerada com sucesso: instagram_posts/Dia2.png
-...
---- Processo Concluído! Verifique a pasta 'instagram_posts' ---
-```
-
-### Passo 4 (Opcional): Executar ambos os scripts
-
-Para automatizar todo o processo:
+### 3. Mapa de Disciplinas Flexibilizadas (`ScriptMapaDisciplinasFlexibilizadas`)
 
 ```bash
-python gerar_html.py && python gerar_posts.py
+cd ScriptMapaDisciplinasFlexibilizadas
+python gerar_html_mapa.py
 ```
 
-## ⚙️ Configurações
+- Os dados das disciplinas estão fixos no próprio script (função `obter_disciplinas_flexibilizadas()`); edite-a para atualizar o conteúdo.
+- Gera `mapa_disciplinas_flexibilizadas.html`.
 
-## ⚙️ Configurações
+### 4. Slides do Projeto Manual (`ScriptProjetoManual`)
 
-### Arquivo CSV
-O arquivo CSV deve estar em: `CSV/Requisição de Defesa TCC (respostas).csv`
-
-**Colunas obrigatórias:**
-- `Nome` - Nome do aluno (será formatado com title case)
-- `Título do trabalho` - Título (será formatado com title case)
-- `Orientador` - Nome do orientador
-- `Membro 1 da Banca` - Primeiro membro da banca
-- `Membro 2 da Banca` - Segundo membro da banca
-- `Membro 3 da Banca (Opcional)` - Terceiro membro (opcional)
-- `Data` - Data da apresentação (formato: DD/MM/AA)
-- `Hora` - Horário da apresentação (formato: HH:MM:SS)
-
-### Dimensões das Imagens
-Por padrão, as imagens são geradas com:
-- **Largura:** 1080px
-- **Altura:** 1350px (formato vertical do Instagram)
-
-Para alterar as dimensões, modifique a função `gerar_imagem_instagram()` em `gerar_posts.py`:
-
-```python
-def gerar_imagem_instagram(html_file_path, output_filename, width=1080, height=1350):
-    # Altere os valores de width e height conforme necessário
-    page.set_viewport_size({"width": width, "height": height})
+```bash
+cd ScriptProjetoManual
+python gerar_htmls.py
 ```
 
-### Formatação de Dados
-O script `gerar_html.py` padroniza automaticamente:
+- Lê o texto de `Img/Texto.md` (uma linha por slide) e as imagens da pasta `Img/`.
+- Gera `slide_01.html` a `slide_0N.html`.
 
-1. **Nomes dos alunos:** Primeira letra de cada palavra em maiúscula
-   - Entrada: `FERNANDO CALDAS COSTA` → Saída: `Fernando Caldas Costa`
-   
-2. **Títulos dos trabalhos:** Primeira letra de cada palavra em maiúscula
-   - Entrada: `projeto e implementação de um sistema...` → Saída: `Projeto E Implementação De Um Sistema...`
+### 5. Carrossel Prêmio Sebrae 2026 (`ScriptSebrae`)
 
-3. **Banca examinadora:** Formatação com prefixo "Prof."
-   - Nomes com prefixos são limpos e unificados
+```bash
+cd ScriptSebrae
+python gerar_html_premiacao_sebrae_2026.py
+```
 
-### Formato de Saída
-- **Formato:** PNG
-- **Qualidade:** Alta resolução (CSS scale)
-- **Compatível:** Instagram, Facebook, outras redes sociais
+- Usa as fotos e logos da própria pasta (`Foto1.jpg`, `Foto2.jpg`, `Foto3.jpg`, `sebrae.png`, `bet.png`) e a logo da FASI em `html/fasiOficial.png` (na raiz).
+- Gera 6 slides (1080x1350px) na pasta `ScriptSebrae/html/`.
 
-## 🎨 Personalizando o HTML
+## 🖼️ Como gerar as imagens (PNG) — `gerar_posts.py`
 
-O template HTML é gerado automaticamente, mas você pode personalizá-lo editando a função `gerar_html_template()` em `gerar_html.py`:
+O `gerar_posts.py` fica na raiz do projeto e é **genérico**: renderiza qualquer HTML da pasta `html/` (relativa ao diretório atual) em PNG, com Playwright.
 
-1. **Alterar título:** Modifique a string "JORNADA DO TCC 2026"
-2. **Alterar subtítulo:** Modifique "Bacharelado em Sistemas de Informação"
-3. **Logo:** Coloque a imagem PNG na pasta `html/` com o nome `fasiOficial.png`
-4. **Cores:** Modifique as cores CSS (--primary-blue, --dark-blue, etc.)
+### Uso básico
+
+Rode a partir da pasta do script cujo HTML você quer transformar em imagem:
+
+```bash
+cd ScriptCarroselTCC
+python ../gerar_posts.py
+```
+
+Por padrão (`--plataforma original`), gera imagens em `original_posts/` com as dimensões originais do layout (1080x1350, ou página inteira para mapas).
+
+### Variações por plataforma (`--plataforma`)
+
+```bash
+# Instagram (portrait 1080x1350, ou 1080x1080 para o mapa em modo "square")
+python ../gerar_posts.py --plataforma instagram
+
+# WhatsApp Status (quadrado 1080x1080)
+python ../gerar_posts.py --plataforma whatsapp
+
+# Layout original do HTML (sem recorte/redimensionamento por plataforma)
+python ../gerar_posts.py --plataforma original
+
+# Gera para as três plataformas de uma vez
+python ../gerar_posts.py --plataforma todas
+```
+
+Isso cria as pastas `instagram_posts/`, `whatsapp_posts/` e/ou `original_posts/` dentro do diretório onde o comando foi executado.
+
+### Processar um único arquivo (`--arquivo`)
+
+```bash
+python ../gerar_posts.py --arquivo html/Dia1.html --plataforma instagram
+```
+
+### Combinações úteis
+
+```bash
+# Gera HTML e, em seguida, os PNGs para todas as plataformas, em um só comando
+cd ScriptCarroselTCC && python gerar_html.py && python ../gerar_posts.py --plataforma todas
+
+# Gerar apenas o post do mapa de disciplinas para Instagram
+cd ScriptMapaDisciplinasFlexibilizadas && python gerar_html_mapa.py && python ../gerar_posts.py --plataforma instagram
+
+# Gerar o carrossel do Sebrae para WhatsApp
+cd ScriptSebrae && python gerar_html_premiacao_sebrae_2026.py && python ../gerar_posts.py --plataforma whatsapp
+```
+
+### Detecção automática de tipo de conteúdo
+
+O `gerar_posts.py` detecta automaticamente se o HTML é um "mapa" (busca por `MAPA DE DISCIPLINAS` no conteúdo ou `mapa_disciplinas` no nome do arquivo) ou um "carrossel" comum, e aplica a configuração de dimensão correta para cada plataforma:
+
+| Plataforma | Carrossel/Post | Mapa (página inteira) |
+|---|---|---|
+| `instagram` | 1080x1350 (portrait) | 1080x1350 (full page) |
+| `whatsapp` | 1080x1080 (square) | 1080x1350 (full page) |
+| `original` | 1080x1350 (portrait) | 1200x1600 (full page) |
+
+## 📁 Estrutura de Arquivos
+
+```
+GeradorImageFromHTML/
+├── gerar_posts.py                          # Gerador genérico de imagens (todas as plataformas)
+├── requirements.txt
+├── README.md
+├── CSV/
+│   └── data.csv                            # Dados de entrada do Carrossel TCC
+├── ScriptCarroselTCC/
+│   ├── gerar_html.py
+│   └── html/Dia1.html, Dia2.html, ...
+├── ScriptCalendarioRAJJ/
+│   ├── gerar_html_rajj.py
+│   └── html/calendario_treinos_rajj.html
+├── ScriptMapaDisciplinasFlexibilizadas/
+│   ├── gerar_html_mapa.py
+│   └── html/mapa_disciplinas_flexibilizadas.html
+├── ScriptProjetoManual/
+│   ├── gerar_htmls.py
+│   ├── Img/Texto.md, image.png, ...
+│   └── html/slide_01.html, ...
+├── ScriptSebrae/
+│   ├── gerar_html_premiacao_sebrae_2026.py
+│   └── html/*.html
+├── instagram_posts/  whatsapp_posts/  original_posts/   # Saídas geradas (por plataforma)
+└── removeBackground/Script.py              # Utilitário para remover fundo de imagens (PIL)
+```
+
+## ⚙️ Colunas esperadas do CSV (Carrossel TCC)
+
+O `CSV/data.csv` (codificação UTF-8, pode ter BOM) deve conter, entre outras, as colunas:
+
+- `Aluno` — nome do aluno (formatado com title case)
+- `Título do Trabalho` — título do TCC (formatado com title case; usado também para detectar duplas)
+- `Orientador`, `Membro Banca 1`, `Membro Banca 2`, `Membro Banca 3`
+- `Data de Defesa` — formato `YYYY-MM-DD` (aceita também `DD/MM/AA` e `DD/MM/AAAA`)
+- `Horário` — formato `H:MM`, `HH:MM` ou `HH:MM:SS`
+
+Quando dois registros têm o mesmo `Título do Trabalho`, o script os une automaticamente em um único card exibindo "Nome 1 e Nome 2", mantendo os demais dados originais do primeiro registro.
 
 ## 🔍 Solução de Problemas
 
@@ -200,51 +205,34 @@ pip install playwright
 python -m playwright install chromium
 ```
 
-### Erro: "No such file or directory: CSV/"
-- Verifique se a pasta `CSV/` existe
-- Verifique se o arquivo CSV está com o nome correto: `Requisição de Defesa TCC (respostas).csv`
+### Erro: "❌ Nenhum arquivo HTML encontrado!" ao rodar `gerar_posts.py`
+- Verifique se você está executando o comando de dentro da pasta do script (ex: `ScriptCarroselTCC/`), pois o `gerar_posts.py` procura a pasta `html/` relativa ao diretório atual.
+- Confirme que o gerador de HTML correspondente já foi executado antes.
+
+### `KeyError` ao rodar `gerar_html.py` do Carrossel TCC
+- Verifique se as colunas do `CSV/data.csv` correspondem exatamente às listadas em [Colunas esperadas do CSV](#-colunas-esperadas-do-csv-carrossel-tcc).
 
 ### Erro: "File not found" ao gerar imagens
-- Verifique se a logo `fasiOficial.png` está na pasta `html/`
-- Verifique se os arquivos HTML foram gerados corretamente
+- Verifique se a logo `fasiOficial.png` está na pasta `html/` (raiz) referenciada pelo script.
+- Verifique se os arquivos HTML foram gerados corretamente antes de rodar `gerar_posts.py`.
 
 ### Erro de renderização das imagens
-- Verifique se o Chromium está instalado: `python -m playwright install chromium`
-- Teste o HTML gerado no navegador antes de gerar a imagem
-
-### Nomes ou títulos não formatados corretamente
-- Verifique se o CSV está com encoding UTF-8
-- Verifique a formatação dos dados no CSV
+- Verifique se o Chromium está instalado: `python -m playwright install chromium`.
+- Teste o HTML gerado no navegador antes de gerar a imagem.
 
 ## 📊 Fluxo do Processo
 
 ```
-CSV (dados brutos)
+Dados (CSV / Markdown / conteúdo fixo)
     ↓
-gerar_html.py (organiza, agrupa por data, padroniza)
+gerar_html*.py (organiza, formata, gera o layout)
     ↓
-HTML (um para cada data)
+HTML (um por slide/dia/página)
     ↓
-gerar_posts.py (renderiza com Playwright)
+gerar_posts.py --plataforma {instagram|whatsapp|original|todas}
     ↓
-PNG (imagens para Instagram)
+PNG (imagens prontas para publicação)
 ```
-
-## 📝 Exemplo Prático
-
-### Entrada (CSV):
-```
-Nome,Data,Hora,Título do trabalho,Orientador,Membro 1 da Banca,Membro 2 da Banca,Membro 3 da Banca (Opcional)
-FERNANDO CALDAS COSTA,09/02/26,09:00:00,projeto e implementação de um sistema de cadastro,Fabricio de Souza Farias,Carlos dos Santos Portela,Leonardo Nunes Gonçalves,Keventon Rian Gimarães Gonçalves
-```
-
-### Processamento:
-1. Nome formatado: `Fernando Caldas Costa`
-2. Título formatado: `Projeto E Implementação De Um Sistema De Cadastro`
-3. Data agrupada: Dia 1 (09/02/26)
-
-### Saída (PNG):
-- Imagem gerada em `instagram_posts/Dia1.png` com todos os dados formatados
 
 ## 🤝 Contribuições
 
