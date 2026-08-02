@@ -1,0 +1,8 @@
+ 
+ Os professores Carlos dos Santos Portela, Fabricio de Souza Faria apresentaram os trabalhos no XLVI Congresso da Sociedade Brasileira de Computação (CSBC 2026). Os artigos abaixo
+ No Farelo: Jogo Digital para Educação Ambiental sobre o Desmatamento e seus Efeitos Nocivos na Amazônia [Fabricio, Carlos]
+ Aplicação do Software barometroR para Monitoramento da Sustentabilidade no Sudeste Paraense [Fabricio]
+ Benchmark de Ferramentas de OCR para Digitalização de Registros Imobiliários: Uma Análise Software-Hardware para Definição de Arquitetura [Carlos Portela e Elton Sarmanho]
+ Bad Smells of Communication in Multidisciplinary Agile Teams of a Remote Sofwware Project [Carlos Portela, Menção Honrosa]
+
+ A FASI está feliz pela representatividade dos nossos docentes no maior evento cientifico do Brasil na area da computacao.
